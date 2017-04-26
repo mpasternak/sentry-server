@@ -1,0 +1,62 @@
+---
+- name: Dev packages are installed
+  apt: name=build-essential
+
+- name: Python dev packages are installed
+  apt: name=python-dev
+
+- name: JPEG dev packages installed
+  apt: name=libjpeg-dev
+
+- name: FFI dev packages 
+  apt: name=libffi-dev
+
+- name: Postgresql dev packages are installed
+  apt: name=libpq-dev
+
+- name: Install sentry via pip
+  command: "/home/{{user}}/vexec pip install -U sentry"
+  sudo_user: "{{ user }}"
+
+- name: Create .sentry directory
+  file: path=/home/{{user}}/.sentry state=directory owner="{{user}}" mode="0700"
+
+- name: Install sentry config
+  template: 
+    src: "{{ item }}"
+    dest: "/home/{{user}}/.sentry/{{item}}"
+    owner: "{{user}}"
+    mode: 0600
+  with_items:
+    - config.yml
+    - sentry.conf.py
+
+- name: Upgrade sentry database
+  command: "/home/{{user}}/vexec sentry upgrade --noinput"
+  sudo_user: "{{user}}"
+  
+- name: Sentry create user
+  command: "/home/{{user}}/vexec sentry createuser --email {{sentry_webapp_email}} --password {{sentry_webapp_default_password}} --superuser"
+  sudo_user: "{{ user }}"
+  ignore_errors: true
+  register: sentry_create_user
+
+- name: Fail if error message different
+  fail: msg="Unexpected error {{ sentry_create_user.stderr }}" 
+  when: (sentry_create_user.stderr != "" and sentry_create_user.stderr.find("duplicate key value violates unique constraint") == -1)
+
+- name: Create supervisor config entry
+  template: src=sentry.conf dest=/etc/supervisor/conf.d/0050-sentry.conf owner=root mode=0644
+  register: supervisor_config
+
+- name: Create crontab entry
+  cron:
+    name: "sentry cleanup"
+    minute: "0"
+    hour: "3"
+    job: "/home/{{user}}/vexec sentry cleanup --days=30"
+
+- name: Supervisor is restarted when config changed
+  shell: service supervisor stop && sleep 5 && service supervisor start
+  when: supervisor_config.changed
+  tags: ['supervisor-restart']

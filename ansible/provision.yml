@@ -1,0 +1,14 @@
+- hosts: 
+    - master
+    - sentry
+  become: yes
+  become_method: sudo
+  roles:
+    - sentry-user
+    - pip
+    - postgresql-server
+    - redis-server
+    - virtualenv
+    - supervisor
+    - postfix
+    - sentry

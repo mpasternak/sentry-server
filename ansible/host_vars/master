@@ -1,0 +1,10 @@
+---
+user: ubuntu
+
+database_user: "{{ user }}"
+database_name: "{{ user }}"
+database_password: 123456
+
+sentry_db_name: "{{ database_name }}"
+
+sentry_secret_key: "14398tqugera9ofiuq0964hutjero0ds8ugq903ugea"

@@ -1,0 +1,38 @@
+---
+- name: Stat cache directory if exists
+  stat: path=/var/cache/wget
+  register: wget_cache_dir
+
+- name: Create cache directory if not exists
+  file: state=directory path=/var/cache/wget mode=0755
+  when: not wget_cache_dir.stat.exists
+
+- name: Stat get-pip script
+  stat: path=/var/cache/wget/get-pip.py
+  register: gp
+
+- name: Download get-pip script
+  get_url: url=https://bootstrap.pypa.io/get-pip.py dest=/var/cache/wget/get-pip.py
+  when: not gp.stat.exists
+
+- name: Stat pip executable
+  stat: path=/usr/bin/pip
+  register: p
+
+- name: Install pip globally for pythons
+  shell: "{{ item }} /var/cache/wget/get-pip.py"
+  with_items:
+    - python
+    - python3
+  when: not p.stat.exists
+
+- name: Stat virtualenv executable
+  stat: path=/usr/local/bin/virtualenv
+  register: v
+
+- name: Install virtualenv
+  shell: "{{ item }} install virtualenv"
+  with_items: 
+    - pip2
+    - pip3
+  when: not v.stat.exists

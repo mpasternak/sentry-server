@@ -1,0 +1,17 @@
+---
+sentry_db_name: "sentry"
+sentry_db_user: "{{ sentry_db_name }}"
+sentry_db_password: "12345678"
+
+sentry_db_host: ""
+sentry_db_port: ""
+
+sentry_web_host: '0.0.0.0'
+sentry_web_port: "9000"
+
+sentry_webapp_email: michal.dtz@gmail.com
+sentry_webapp_default_password: 12345678
+
+sentry_secret_key: "changeme"
+
+

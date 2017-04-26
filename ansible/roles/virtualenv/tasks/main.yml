@@ -1,0 +1,12 @@
+---
+- name: Stat virtualenv
+  stat: path=/home/{{user}}/env
+  register: v
+
+- name: Create virtualenv
+  shell: virtualenv -p python{{ python_version }} /home/{{ user }}/env
+  sudo_user: "{{ user }}"
+  when: not v.stat.exists
+
+- name: Create vexec 
+  template: src=vexec dest=/home/{{user}}/vexec owner={{user}} group={{user}} mode=0755
